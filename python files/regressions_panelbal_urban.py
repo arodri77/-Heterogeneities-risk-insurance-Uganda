@@ -1,12 +1,19 @@
 # -*- coding: utf-8 -*-
 """
+Created on Thu Jun 21 16:34:53 2018
+
+@author: Albert
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Wed Jun  6 09:31:22 2018
 
 @author: Albert
 """
 
 # =============================================================================
-# Heterogeneities Townsend: Balanced Panel Data
+# Heterogeneities Townsend: Balanced Panel Data Urban Households
 # =============================================================================
 
 
@@ -26,6 +33,7 @@ panel = pd.read_stata("dataUGA.dta")
 
 #Balanced panel
 panelbal = panel.loc[panel["counthh"]==4,]
+panelbal = panelbal.loc[panelbal["urban"]==1,]
 
 counthh = panelbal.groupby(by="hh")[["hh"]].count()
 
@@ -50,7 +58,7 @@ dummiesy.columns = [["y2","y3","y4","y5"]]
 control = control.join(dummiesy)
 
 
-control13 = panelbal.loc[panelbal.wave=="2013-2014",["hh","sex","region","urban"]]
+control13 = panelbal.loc[panelbal.wave=="2013-2014",["hh","sex","region"]]
 control13["female"] = (control13.sex==2)*1
 control = control.merge(control13, on="hh",how="inner")
 
@@ -61,7 +69,7 @@ control = control.join(dummiesr)
 control.drop(["lny","lnc","sex"],axis=1, inplace=True)
 
 
-panelbal.drop(["female","urban","region","region2","region3","region4"],axis=1, inplace=True)
+panelbal.drop(["female","region","region2","region3","region4"],axis=1, inplace=True)
 panelbal.sort_values(["hh","wave"])
 panelbal.set_index(["hh","wave"],inplace=True)
 
@@ -102,12 +110,6 @@ data = panelcontrol
 sumshocks = data[["d_shock","d_aggregate","d_idiosyn","d_climate","d_prices","d_job","d_health","d_pests"]].mean()*100
 
 
-
-#Proportion of shocks urban vs rural
-sumshocks_urb = data.groupby(by="urban")[["d_shock","d_aggregate","d_idiosyn","d_climate","d_prices","d_job","d_health","d_pests"]].mean()*100
-nurb = data.groupby(by="urban")[["d_shock"]].count()
-print(sumshocks_urb.to_latex())
-
 #Proportion of shocks by Region
 sumshocks_reg = data.groupby(by="region")[["d_shock","d_aggregate","d_idiosyn","d_climate","d_prices","d_job","d_health","d_pests"]].mean()*100
 nreg = data.groupby(by="region")[["d_shock"]].count()
@@ -124,10 +126,6 @@ nquin = data.groupby(by="c_quin")[["d_shock"]].count()
 print(sumshocks_quin.to_latex())
 
 
-#Proportion shocks by Quintiles urban and rural
-sumshocks_quinurb = data.groupby(by=["c_quin","urban"])[["d_shock","d_aggregate","d_idiosyn","d_climate","d_prices","d_job","d_health","d_pests"]].mean()*100
-nquinurb = data.groupby(by=["c_quin","urban"])[["d_shock"]].count()
-print(sumshocks_quinurb.to_latex())
 
 
 #Proportion of shocks by 50%rich
@@ -277,8 +275,6 @@ test2 = sm.ols("Δc ~ Δavgc +Δy*female +female ", data=data).fit()
 print(test2.summary())
 
 
-test3 = sm.ols("Δc ~ Δavgc +Δy*urban +urban ", data=data).fit()
-print(test3.summary())
 
 test4 = sm.ols("Δc ~ Δavgc +Δy*crich +crich ", data=data).fit()
 print(test4.summary())
@@ -293,39 +289,23 @@ ftestc4 = test5.f_test("Δy+Δy:c4 = 0")
 ftestc5 = test5.f_test("Δy+Δy:c5 = 0")
 print(ftestc2, ftestc3, ftestc4, ftestc5)
 
+
 test8 = sm.ols("Δc ~ Δavgc +Δy*c2 +c2 +Δy*c3 +c3 +Δy*c4 +c4 +Δy*c5 +c5 +region2 +region3 +region4 +Δy*region2 +Δy*region3 +Δy*region4 ", data=data).fit()
 print(test5.summary())
-
-test6 = sm.ols("Δc ~ Δavgc +Δy*female +female +Δy*urban +urban +Δy*c2 +c2 +Δy*c3 +c3 +Δy*c4 +c4 +Δy*c5 +c5 ", data=data).fit()
+test6 = sm.ols("Δc ~ Δavgc +Δy*female +female  +Δy*c2 +c2 +Δy*c3 +c3 +Δy*c4 +c4 +Δy*c5 +c5 +region2 +region3 +region4 +Δy*region2 +Δy*region3 +Δy*region4 ", data=data).fit()
 print(test6.summary())
 
-test7 = sm.ols("Δc ~ Δavgc +Δy*female +female +Δy*urban +urban +Δy*crich +crich", data=data).fit()
+test7 = sm.ols("Δc ~ Δavgc +Δy*female +female  +Δy*crich +crich", data=data).fit()
 print(test7.summary())
 
 
-#Ftest sum of coefficients: Insurance per quintiles
-ftestc26 = test6.f_test("Δy+Δy:c2 = 0")
-ftestc36 = test6.f_test("Δy+Δy:c3 = 0")
-ftestc46 = test6.f_test("Δy+Δy:c4 = 0")
-ftestc56 = test6.f_test("Δy+Δy:c5 = 0")
-print(ftestc26, ftestc36, ftestc46, ftestc56)
-
-
-
-
-results = summary_col([test1, test2, test3,  test5, test6],stars=True)
+results = summary_col([test1,  test5],stars=True)
 print(results)
 print(results.as_latex())
 
-
-ftests= pd.DataFrame(np.array([ftestc2.fvalue[0,0], ftestc2.pvalue, ftestc3.fvalue[0,0], ftestc3.pvalue, ftestc4.fvalue[0,0], ftestc4.pvalue, ftestc5.fvalue[0,0], ftestc5.pvalue]))
-ftests2 = pd.DataFrame(np.array([ftestc26.fvalue[0,0], ftestc26.pvalue, ftestc36.fvalue[0,0], ftestc36.pvalue, ftestc46.fvalue[0,0], ftestc46.pvalue, ftestc56.fvalue[0,0], ftestc56.pvalue]))
 pd.options.display.float_format = '{:,.4f}'.format
-ftests = pd.concat([ftests, ftests2], axis=1)
-
+ftests= pd.DataFrame(np.array([ftestc2.fvalue[0,0], ftestc2.pvalue, ftestc3.fvalue[0,0], ftestc3.pvalue, ftestc4.fvalue[0,0], ftestc4.pvalue, ftestc5.fvalue[0,0], ftestc5.pvalue]))
 print(ftests.to_latex())
-
-
 
 
 # =============================================================================
