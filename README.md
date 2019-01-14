@@ -1,6 +1,6 @@
 # Heterogeneities in Risk and insurance Uganda: An Empirical Exploration
 
-Here I upload the code (in Python) and the datasets used in my thesis, Heterogeneities in Risk and insurance Uganda: An Empirical Exploration. 
+Here I upload the code (in Python) and  datasets used in my thesis, Heterogeneities in Risk and insurance Uganda: An Empirical Exploration. 
 To run the code one must first download the data from the World Bank website (http://surveys.worldbank.org/lsms/integrated-surveys-agriculture-ISA/uganda). For the 2013-14 wave I use the files in csv. For the rest of waves I use the dta files. The data in the World Bank have free access but one must register first.
 
 - In the files cons09-cons13, I create the consumption datasets per each wave.
